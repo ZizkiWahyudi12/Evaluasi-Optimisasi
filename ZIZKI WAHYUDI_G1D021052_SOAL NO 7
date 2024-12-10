@@ -1,0 +1,17 @@
+using JuMP, Ipopt
+
+# Membuat model dengan solver Ipopt (untuk optimisasi nonlinear)
+model = Model(Ipopt.Optimizer)
+
+# Mendefinisikan variabel keputusan (satu peubah)
+@variable(model, x >= 0)  # x >= 0 karena jumlah unit tidak bisa negatif
+
+# Mendefinisikan fungsi tujuan: Minimalkan biaya
+@objective(model, Min, (x - 5)^2 + 10)
+
+# Menyelesaikan model
+optimize!(model)
+
+# Menampilkan hasil
+println("Nilai optimal x: ", value(x))
+println("Nilai fungsi tujuan (biaya minimal): ", objective_value(model))
