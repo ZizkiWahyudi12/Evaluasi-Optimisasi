@@ -1,0 +1,123 @@
+%data bg febrian jalsitio optimasi menggunakan matpower
+net1=data_febrian;
+%[IP_V_SELURUH]=manual_way(net1);
+tic
+%%Parameter Awal
+Ng=length(net1.branch(:,11)); % jumlah kontingensii
+p0=ones(Ng,Ng); % Populasi awal
+% Parameter SCA
+n = 100; % Ukuran populasi
+Vmax = 1; % Batasan kecepatan
+itermax =10;
+nlf=0;%jumlah LF
+weights = p0(1:Ng); % Bobot item
+capacity = 20; % Kapasitas knapsack
+% Inisialisasi
+population = randi([0, 1], n, length(weights)); % Populasi awal
+bestPosition = zeros(1, length(weights)); % Posisi terbaik
+bestValue = 0; % Nilai terbaik
+bestFitness=0;
+%evaluasi pertama
+value=Load_Flow(population,net1);
+ b0=sort(value', 'descend');%%hasil koding SCA diurutkan dari terbesar
+hingga terkecil
+ if numel(b0) < capacity
+ w = [b0 zeros(1, capacity - numel(b0))];%%menambahkan nilai 0 jika
+b0 kurang dari capacity
+ else
+ w = b0(1:capacity);
+ end
+ b1=w;
+ % Periksa batasan kapasitas
+ values = sum(b1);
+ if values > bestFitness
+ bestPosition = population;
+ bestFitness=values;
+ end
+% Iterasi
+iter=2;
+while iter < itermax
+ a = 1;
+ itermax=itermax;
+ r1=a-iter*((a)/itermax);
+ for i = 1:n
+ X = bestPosition; % Posisi terbaik saat ini
+ B = rand(1, length(weights)) * 2 * pi; % Faktor acak sin dan cos
+ d = 2*rand*rand;
+ r4=rand();
+ % Gerakan sinusoidal
+ if r4 < 0.5 %% sin
+ population(i,:) = population(i,:) + r1 * sin(B) .* abs(d * X(i,:) -
+population(i,:) );
+ else %% cos
+ population(i,:) = population(i,:) + r1 * cos(B) .* abs(d * X(i,:) -
+population(i,:) );
+ end
+ % Batasan kecepatan
+ population(i,:) = max(0, min(Vmax, population(i,:))); %% setiap elemen
+vektor hasilnya tidak lebih besar dari elemen yang sesuai di "Vmax" min 0
+ % Pembaruan individu
+ population(i,:) = population(i,:) > rand(1, length(weights)); %%
+membuat nilai false(0) dan true (1)
+ end
+
+
+ % Evaluasi ulangfi
+ for i = 1:n
+ value=Load_Flow(population(i, :),net1);
+% value = Load_Flow(fitness(unique(population, 'rows')));
+ nlf=nlf+1;
+
+
+ b0=sort(value', 'descend');%%hasil koding SCA diurutkan dari terbesar
+hingga terkecil
+if numel(b0) < capacity
+ w = [b0 zeros(1, capacity - numel(b0))];%%menambahkan nilai 0 jika
+b0 kurang dari capacity
+ else
+ w = b0(1:capacity);
+ end
+ b1=w;
+
+% Periksa batasan kapasitas
+ values = sum(b1);
+ if values > bestFitness
+ bestPosition = population(i, :);
+ bestFitness=values;
+ end
+ % Pembaruan posisi terbaik
+% if value > bestValue
+% bestPosition = population(i, :);
+% bestValue = value;
+% end
+ end
+iter=iter+1;
+end
+%best_Value=sort(bestValue,'descend');
+%Jumlah_diambil=best_Value(1:capacity)
+% Hasil
+waktu=toc;
+a0=sort(IP_V_SELURUH(:,1), 'descend');%%Hasil Koding Manual
+diurutkan dari terbesar ke terkecil
+a1=a0(1:capacity)' ;%%top 20 nilai terbesar cara manual
+%isp(xlswrite('Iterasi', b1'));%%top 20 nilai terbaik cara ACO
+%disp('Best Weight')
+%Jumlah_Ranking=sum(bestSolution.*weights);
+%%capture ratio
+persamaan = ismember(a1, b1); % Mengecek keanggotaan a di dalam b
+persamaan = double(persamaan); % Mengubah nilai logikal menjadi numerik
+(0 dan 1)
+disp('jumlah saluran yang tertangkap')
+Ncr=sum(persamaan);%%Ngjumlah saluran yang sama
+Nm=length(a1);%% 20 saluran
+disp('capture ratio dalam %')
+CR=(Ncr/Nm)*100;
+disp(CR)
+% Menghitung Search space scan percentage
+q1a1=n*itermax;
+kombinasi = factorial(Ng) / (factorial(Nm) * factorial(Ng - Nm));
+disp('Search space scan percentage dalam %')
+S3P=(q1a1/kombinasi)*100;
+disp(S3P)
+% Menghitung Search space scan percentage
+waktu=toc
