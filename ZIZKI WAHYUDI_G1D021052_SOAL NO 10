@@ -1,0 +1,14 @@
+using JuMP, GLPK  # GLPK adalah solver yang digunakan di sini
+
+# Membuat model optimisasi
+model = Model(GLPK.Optimizer)
+
+# Menentukan variabel keputusan
+@variable(model, x1 >= 0)  # Jumlah produk pertama
+@variable(model, x2 >= 0)  # Jumlah produk kedua
+
+# Mendefinisikan fungsi tujuan (maksimalkan keuntungan)
+@objective(model, Max, 50x1 + 40x2)
+
+# Menambahkan kendala
+@constraint(model, 4x1
