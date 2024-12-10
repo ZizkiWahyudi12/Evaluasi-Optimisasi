@@ -1,0 +1,49 @@
+# optimisasi linier
+using JuMP, GLPK
+
+# Membuat model dengan solver GLPK
+model = Model(GLPK.Optimizer)
+
+# Mendefinisikan variabel keputusan
+@variable(model, x1 >= 0)
+@variable(model, x2 >= 0)
+
+# Mendefinisikan fungsi tujuan
+@objective(model, Max, 50x1 + 40x2)
+
+# Menambahkan kendala
+@constraint(model, 4x1 + 3x2 <= 200)  # Bahan baku
+@constraint(model, 2x1 + x2 <= 100)   # Waktu kerja
+
+# Menyelesaikan model
+optimize!(model)
+
+# Menampilkan hasil
+println("Nilai optimal x1: ", value(x1))
+println("Nilai optimal x2: ", value(x2))
+println("Nilai fungsi tujuan: ", objective_value(model))
+
+#optimisasi non linier
+using JuMP, Ipopt
+
+# Membuat model dengan solver Ipopt
+model = Model(Ipopt.Optimizer)
+
+# Mendefinisikan variabel keputusan
+@variable(model, r >= 0)  # Radius
+@variable(model, h >= 0)  # Tinggi
+
+# Fungsi tujuan: Minimalkan luas permukaan
+@objective(model, Min, 2π * r^2 + 2π * r * h)
+
+# Menambahkan kendala: Volume tetap
+@constraint(model, π * r^2 * h == 1000)
+
+# Menyelesaikan model
+optimize!(model)
+
+# Menampilkan hasil
+println("Radius optimal (r): ", value(r))
+println("Tinggi optimal (h): ", value(h))
+println("Luas permukaan minimal: ", objective_value(model))
+
