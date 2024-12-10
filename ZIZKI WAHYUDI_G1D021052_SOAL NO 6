@@ -1,0 +1,23 @@
+using JuMP, GLPK
+
+# Membuat model dengan solver GLPK
+model = Model(GLPK.Optimizer)
+
+# Mendefinisikan variabel keputusan
+@variable(model, x1 >= 0, Int)  # x1 adalah bilangan integer
+@variable(model, x2 >= 0)       # x2 adalah bilangan kontinu
+
+# Mendefinisikan fungsi tujuan
+@objective(model, Max, 50x1 + 40x2)
+
+# Menambahkan kendala
+@constraint(model, 4x1 + 3x2 <= 200)  # Bahan baku
+@constraint(model, 2x1 + x2 <= 100)   # Waktu kerja
+
+# Menyelesaikan model
+optimize!(model)
+
+# Menampilkan hasil
+println("Nilai optimal x1 (integer): ", value(x1))
+println("Nilai optimal x2 (continu): ", value(x2))
+println("Nilai fungsi tujuan: ", objective_value(model))
